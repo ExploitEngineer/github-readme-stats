@@ -17,18 +17,21 @@ const data_langs = {
         nodes: [
           {
             name: "test-repo-1",
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [{ size: 100, node: { color: "#0f0", name: "HTML" } }],
             },
           },
           {
             name: "test-repo-2",
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [{ size: 100, node: { color: "#0f0", name: "HTML" } }],
             },
           },
           {
             name: "test-repo-3",
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [
                 { size: 100, node: { color: "#0ff", name: "javascript" } },
@@ -37,6 +40,7 @@ const data_langs = {
           },
           {
             name: "test-repo-4",
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [
                 { size: 100, node: { color: "#0ff", name: "javascript" } },
@@ -139,6 +143,32 @@ describe("FetchTopLanguages", () => {
         size: 2,
       },
     });
+  });
+
+  it("should count own and included org repos but not other orgs", async () => {
+    const repo = (owner, name, size) => ({
+      name,
+      owner: { login: owner },
+      languages: {
+        edges: [{ size, node: { color: "#000", name } }],
+      },
+    });
+    mock.onPost("https://api.github.com/graphql").reply(200, {
+      data: {
+        user: {
+          repositories: {
+            nodes: [
+              repo("AnuragHazra", "Own", 100),
+              repo("0xExploit-Labs", "IncludedOrg", 100),
+              repo("some-other-org", "OtherOrg", 100000),
+            ],
+          },
+        },
+      },
+    });
+
+    const langs = await fetchTopLanguages("anuraghazra");
+    expect(Object.keys(langs).sort()).toStrictEqual(["IncludedOrg", "Own"]);
   });
 
   it("should throw specific error when user not found", async () => {

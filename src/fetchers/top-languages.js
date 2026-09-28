@@ -20,10 +20,13 @@ const fetcher = (variables, token) => {
       query: `
       query userInfo($login: String!) {
         user(login: $login) {
-          # fetch only owner repos & not forks
+          # fetch owner and org repos & not forks; INCLUDED_ORGS narrows the orgs
           repositories(ownerAffiliations: [OWNER, ORGANIZATION_MEMBER], isFork: false, first: 100) {
             nodes {
               name
+              owner {
+                login
+              }
               languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
                 edges {
                   size
@@ -49,6 +52,24 @@ const fetcher = (variables, token) => {
 /**
  * @typedef {import("./types").TopLangData} TopLangData Top languages data.
  */
+
+/**
+ * Orgs whose repos count alongside the repos the user owns directly.
+ * Repos from any other org the user belongs to are left out.
+ */
+const INCLUDED_ORGS = ["0xexploit-labs"];
+
+/**
+ * Whether a repo belongs to the user or to one of the included orgs.
+ *
+ * @param {{ owner: { login: string } }} repo Repository node.
+ * @param {string} username GitHub username.
+ * @returns {boolean} True if the repo should count.
+ */
+const isCountedRepo = (repo, username) => {
+  const owner = repo.owner.login.toLowerCase();
+  return owner === username.toLowerCase() || INCLUDED_ORGS.includes(owner);
+};
 
 /**
  * Fetch top languages for a given username.
@@ -91,7 +112,9 @@ const fetchTopLanguages = async (
     );
   }
 
-  let repoNodes = res.data.data.user.repositories.nodes;
+  let repoNodes = res.data.data.user.repositories.nodes.filter((repo) =>
+    isCountedRepo(repo, username),
+  );
   /** @type {Record<string, boolean>} */
   let repoToHide = {};
   const allExcludedRepos = [...exclude_repo, ...excludeRepositories];

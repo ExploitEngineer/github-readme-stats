@@ -15,16 +15,19 @@ const data_langs = {
       repositories: {
         nodes: [
           {
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [{ size: 150, node: { color: "#0f0", name: "HTML" } }],
             },
           },
           {
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [{ size: 100, node: { color: "#0f0", name: "HTML" } }],
             },
           },
           {
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [
                 { size: 100, node: { color: "#0ff", name: "javascript" } },
@@ -32,6 +35,7 @@ const data_langs = {
             },
           },
           {
+            owner: { login: "anuraghazra" },
             languages: {
               edges: [
                 { size: 100, node: { color: "#0ff", name: "javascript" } },
